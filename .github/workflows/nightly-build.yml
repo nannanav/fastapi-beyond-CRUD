@@ -34,6 +34,29 @@ jobs:
           restore-keys: |
             docker-buildx-${{ runner.os }}-
 
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and Push Multi-Platform Docker Image
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M)
+          IMAGE_TAG=ghcr.io/${{ github.repository_owner }}/my-python-app:nightly-${TIMESTAMP}
+
+          docker buildx build \
+            --pull \
+            --platform linux/amd64,linux/arm64,linux/arm/v7 \
+            --push \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-new \
+            -t $IMAGE_TAG .
+
+      - name: Move Cache (for next builds)
+        run: |
+          if [ -d "/tmp/.buildx-cache-new" ]; then
+            rm -rf /tmp/.buildx-cache
+            mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          fi
+
       - name: Build and Start Services
         run: docker compose --env-file .env up -d --build
 
@@ -62,23 +85,6 @@ jobs:
           docker exec $CONTAINER_NAME pip install pytest
           docker exec $CONTAINER_NAME pytest
         continue-on-error: false  # Fails if tests fail
-
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Build and Push Multi-Platform Docker Image
-        run: |
-          docker buildx build \
-            --platform linux/amd64,linux/arm64,linux/arm/v7 \
-            --push \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-new \
-            -t ghcr.io/${{ github.repository_owner }}/my-python-app:nightly .
-
-      - name: Move Cache (for next builds)
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   notify-on-failure:
     needs: build-and-test
