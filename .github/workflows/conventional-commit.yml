@@ -17,29 +17,6 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Optional, for private repositories.
           # allowed-commit-types: "feat,fix" # Optional, set if you want a subset of commit types to be allowed.
-  # check-commits:
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-
-  #     - name: Get PR Commits
-  #       id: commits
-  #       run: |
-  #         commits=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits[].message')
-  #         echo "$commits" > commits.txt
-  #       env:
-  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Check Conventional Commit Messages
-  #       id: lint
-  #       run: |
-  #         npm install -g @commitlint/cli @commitlint/config-conventional
-  #         echo "module.exports = { extends: ['@commitlint/config-conventional'] };" > commitlint.config.js
-  #         cat commits.txt | while read -r line; do
-  #           echo "$line" | commitlint || echo "INVALID: $line" >> failed_commits.txt
-  #         done
 
       - name: Fail if invalid commits are found
         if: ${{ failure() }}
