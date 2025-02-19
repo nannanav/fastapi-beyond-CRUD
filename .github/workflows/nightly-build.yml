@@ -73,12 +73,30 @@ jobs:
       - name: Build and Start Services
         run: docker compose up -d --build
 
+      - name: Find Web Container Name
+        id: find_container
+        run: echo "CONTAINER_NAME=$(docker ps --filter 'name=web' --format '{{.Names}}')" >> $GITHUB_ENV
+
+      - name: Wait for Database to Be Ready
+        run: |
+          until docker compose exec -T db pg_isready -U myuser; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 3
+          done
+
       - name: Run Database Migrations
-        run: docker compose exec -T backend alembic upgrade head
+        run: docker exec -T $CONTAINER_NAME alembic upgrade head
 
       - name: Run Tests Inside Docker
-        run: docker compose exec -T backend pytest
+        run: docker exec -T $CONTAINER_NAME pytest
         continue-on-error: false  # Fails if tests fail
+
+      # - name: Run Database Migrations
+      #   run: docker compose exec -T backend alembic upgrade head
+
+      # - name: Run Tests Inside Docker
+      #   run: docker compose exec -T backend pytest
+      #   continue-on-error: false  # Fails if tests fail
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
