@@ -56,3 +56,6 @@ jobs:
       recipient: "your-email@example.com"
       subject: "Nightly Build Failed"
       text: "The nightly build for ${{ github.repository }} has failed. Please check the logs."
+    secrets:
+      ETHEREAL_EMAIL: ${{ secrets.ETHEREAL_EMAIL }}
+      ETHEREAL_PASSWORD: ${{ secrets.ETHEREAL_PASSWORD }}
