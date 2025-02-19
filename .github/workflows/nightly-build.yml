@@ -85,10 +85,10 @@ jobs:
           done
 
       - name: Run Database Migrations
-        run: docker exec -T $CONTAINER_NAME alembic upgrade head
+        run: docker exec $CONTAINER_NAME alembic upgrade head
 
       - name: Run Tests Inside Docker
-        run: docker exec -T $CONTAINER_NAME pytest
+        run: docker exec $CONTAINER_NAME pytest
         continue-on-error: false  # Fails if tests fail
 
       # - name: Run Database Migrations
