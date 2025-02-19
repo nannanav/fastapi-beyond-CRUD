@@ -86,6 +86,8 @@ jobs:
 
       - name: Debug Running Containers
         run: docker ps -a
+             docker logs fastapi-beyond-crud-web-1
+             docker logs fastapi-beyond-crud-celery-1
 
       - name: Run Database Migrations
         run: docker exec $CONTAINER_NAME alembic upgrade head
