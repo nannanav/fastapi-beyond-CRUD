@@ -5,9 +5,9 @@ on:
     branches:
       - main
 
-# on:
-#   schedule:
-#     - cron: '00 22 * * *'  # Runs at UTC every day
+  # on:
+  #   schedule:
+  #     - cron: '00 22 * * *'  # Runs at UTC every day
 
 jobs:
   build-and-test:
@@ -25,6 +25,14 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker Buildx
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: docker-buildx-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            docker-buildx-${{ runner.os }}-
 
       - name: Build and Start Services
         run: docker compose --env-file .env up -d --build
@@ -63,7 +71,14 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64,linux/arm/v7 \
             --push \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-new \
             -t ghcr.io/${{ github.repository_owner }}/my-python-app:nightly .
+
+      - name: Move Cache (for next builds)
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   notify-on-failure:
     needs: build-and-test
