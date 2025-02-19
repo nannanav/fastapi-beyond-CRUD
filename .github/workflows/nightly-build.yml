@@ -1,8 +1,58 @@
-name: Nightly Build
+# name: Nightly Build
 
 # on:
 #   schedule:
 #     - cron: '20 18 * * *'  # Runs at 12 AM UTC every day
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: '3.11'
+
+#       - name: Install Dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+#           pip install pytest
+
+#       - name: Run Tests
+#         run: pytest
+#         continue-on-error: false  # Fails the workflow if tests fail
+
+#       - name: Log in to GitHub Container Registry
+#         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+#       - name: Build and Push Docker Image
+#         run: |
+#           docker build -t ghcr.io/${{ github.repository_owner }}/my-python-app:nightly .
+#           docker push ghcr.io/${{ github.repository_owner }}/my-python-app:nightly
+        
+#   notify-on-failure:
+#     needs: build-and-push
+#     if: failure()
+#     uses: ./.github/workflows/send-email.yml
+#     with:
+#       recipient: "your-email@example.com"
+#       subject: "Nightly Build Failed"
+#       text: "The nightly build for ${{ github.repository }} has failed. Please check the logs."
+#     secrets:
+#       ETHEREAL_EMAIL: ${{ secrets.ETHEREAL_EMAIL }}
+#       ETHEREAL_PASSWORD: ${{ secrets.ETHEREAL_PASSWORD }}
+
+name: Nightly Build
 
 on:
   push:
@@ -10,27 +60,25 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+      - name: Set up environment file
+        run: cp .env.example .env
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+      - name: Build and Start Services
+        run: docker compose up -d --build
 
-      - name: Run Tests
-        run: pytest
-        continue-on-error: false  # Fails the workflow if tests fail
+      - name: Run Database Migrations
+        run: docker compose exec -T backend alembic upgrade head
+
+      - name: Run Tests Inside Docker
+        run: docker compose exec -T backend pytest
+        continue-on-error: false  # Fails if tests fail
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -40,16 +88,8 @@ jobs:
           docker build -t ghcr.io/${{ github.repository_owner }}/my-python-app:nightly .
           docker push ghcr.io/${{ github.repository_owner }}/my-python-app:nightly
 
-      # - name: Notify on Failure
-      #   if: failure()
-      #   uses: ./.github/workflows/send-email.yml
-      #   with:
-      #     recipient: "your-email@example.com"
-      #     subject: "Nightly Build Failed"
-      #     text: "The nightly build for ${{ github.repository }} has failed. Please check the logs."
-        
   notify-on-failure:
-    needs: build-and-push
+    needs: build-and-test
     if: failure()
     uses: ./.github/workflows/send-email.yml
     with:
