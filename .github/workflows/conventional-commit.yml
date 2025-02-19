@@ -41,5 +41,5 @@ jobs:
       subject: "PR Closed Due to Invalid Commit Messages"
       text: "Hi ${{ github.event.pull_request.user.login }},\n\nYour PR was closed because commit messages did not follow Conventional Commit standards. Please update and reopen.\n\nBest,\nGitHub Actions Bot"
     secrets:
-      ETHEREAL_EMAIL: ${{ secrets.ETHEREAL_EMAIL }}
-      ETHEREAL_PASSWORD: ${{ secrets.ETHEREAL_PASSWORD }}
+      ETHEREAL_EMAIL: elias.reichel75@ethereal.email
+      ETHEREAL_PASSWORD: kZBnM7uGu2QK4WAdsV

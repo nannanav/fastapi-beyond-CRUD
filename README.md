@@ -78,3 +78,11 @@ pytest
 
 ## Contributing
 I welcome contributions to improve the documentation! You can contribute [here](https://github.com/jod35/fastapi-beyond-crud-docs).
+
+## My Contribution:
+1. Added a workflow to verify whether conventional commits are used in a pr. If it fails, we close the pr and send an email notification. 
+2. Added a common workflow to send emails. This can be (re)used by multiple workflows. Emails are sent using ethereal email. 
+3. Create a nightly build workflow. This triggers on main at night, and tests and builds. It stores the built image in github registry. Upon failure, it sends an email notification to the users. 
+
+## To run:
+    docker compose up -d
