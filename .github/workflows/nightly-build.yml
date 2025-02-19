@@ -40,10 +40,19 @@ jobs:
           docker build -t ghcr.io/${{ github.repository_owner }}/my-python-app:nightly .
           docker push ghcr.io/${{ github.repository_owner }}/my-python-app:nightly
 
-      - name: Notify on Failure
-        if: failure()
-        uses: ./.github/workflows/send-email.yml
-        with:
-          recipient: "your-email@example.com"
-          subject: "Nightly Build Failed"
-          text: "The nightly build for ${{ github.repository }} has failed. Please check the logs."
+      # - name: Notify on Failure
+      #   if: failure()
+      #   uses: ./.github/workflows/send-email.yml
+      #   with:
+      #     recipient: "your-email@example.com"
+      #     subject: "Nightly Build Failed"
+      #     text: "The nightly build for ${{ github.repository }} has failed. Please check the logs."
+        
+  notify-on-failure:
+    needs: build-and-push
+    if: failure()
+    uses: ./.github/workflows/send-email.yml
+    with:
+      recipient: "your-email@example.com"
+      subject: "Nightly Build Failed"
+      text: "The nightly build for ${{ github.repository }} has failed. Please check the logs."
