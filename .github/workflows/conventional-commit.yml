@@ -1,4 +1,4 @@
-name: Check Conventional Commits
+name: Conventional Commits
 
 on:
   pull_request:
@@ -9,15 +9,14 @@ jobs:
     name: Conventional Commits
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+      - uses: actions/checkout@v4
 
+      - name: Check Conventional Commits
       - uses: webiny/action-conventional-commits@v1.3.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Optional, for private repositories.
           # allowed-commit-types: "feat,fix" # Optional, set if you want a subset of commit types to be allowed.
-
-
-
   # check-commits:
   #   runs-on: ubuntu-latest
 
@@ -42,17 +41,16 @@ jobs:
   #           echo "$line" | commitlint || echo "INVALID: $line" >> failed_commits.txt
   #         done
 
-  #     - name: Fail if invalid commits are found
-  #       if: ${{ failure() }}
-  #       run: |
-  #         echo "Some commit messages do not follow Conventional Commit standards:"
-  #         cat failed_commits.txt || true
-  #         exit 1
+      - name: Fail if invalid commits are found
+        if: ${{ failure() }}
+        run: |
+          echo "Some commit messages do not follow Conventional Commit standards"
+          exit 1
 
-  #     - name: Comment and Close PR if check fails
-  #       if: ${{ failure() }}
-  #       run: |
-  #         gh pr comment ${{ github.event.pull_request.number }} --body "⚠️ **PR closed**: Commit messages must follow [Conventional Commit](https://www.conventionalcommits.org/) format. Please update and reopen."
-  #         gh pr close ${{ github.event.pull_request.number }}
-  #       env:
-  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Comment and Close PR if check fails
+        if: ${{ failure() }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "⚠️ **PR closed**: Commit messages must follow [Conventional Commit](https://www.conventionalcommits.org/) format. Please update and reopen."
+          gh pr close ${{ github.event.pull_request.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
