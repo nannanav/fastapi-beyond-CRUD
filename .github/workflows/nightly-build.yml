@@ -85,7 +85,7 @@ jobs:
           done
 
       - name: Debug Running Containers
-        run: docker ps -ad
+        run: docker ps -a
 
       - name: Run Database Migrations
         run: docker exec $CONTAINER_NAME alembic upgrade head
