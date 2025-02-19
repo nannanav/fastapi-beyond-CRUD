@@ -1,0 +1,45 @@
+name: Check Conventional Commits
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get PR Commits
+        id: commits
+        run: |
+          commits=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits[].message')
+          echo "$commits" > commits.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Conventional Commit Messages
+        id: lint
+        run: |
+          npm install -g @commitlint/cli @commitlint/config-conventional
+          echo "module.exports = { extends: ['@commitlint/config-conventional'] };" > commitlint.config.js
+          cat commits.txt | while read -r line; do
+            echo "$line" | commitlint || echo "INVALID: $line" >> failed_commits.txt
+          done
+
+      - name: Fail if invalid commits are found
+        if: ${{ failure() }}
+        run: |
+          echo "Some commit messages do not follow Conventional Commit standards:"
+          cat failed_commits.txt || true
+          exit 1
+
+      - name: Comment and Close PR if check fails
+        if: ${{ failure() }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "⚠️ **PR closed**: Commit messages must follow [Conventional Commit](https://www.conventionalcommits.org/) format. Please update and reopen."
+          gh pr close ${{ github.event.pull_request.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
