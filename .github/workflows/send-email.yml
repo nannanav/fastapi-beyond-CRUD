@@ -1,0 +1,50 @@
+name: Send Email Notification
+
+on:
+  workflow_call:
+    inputs:
+      recipient:
+        required: true
+        type: string
+      subject:
+        required: true
+        type: string
+      text:
+        required: true
+        type: string
+    secrets:
+      ETHEREAL_EMAIL:
+        required: true
+      ETHEREAL_PASSWORD:
+        required: true
+
+jobs:
+  send_email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install msmtp (Lightweight SMTP Client)
+        run: sudo apt-get update && sudo apt-get install -y msmtp
+
+      - name: Configure SMTP
+        run: |
+          cat <<EOF > ~/.msmtprc
+          account ethereal
+          host smtp.ethereal.email
+          port 587
+          auth on
+          user ${{ secrets.ETHEREAL_EMAIL }}
+          password ${{ secrets.ETHEREAL_PASSWORD }}
+          tls on
+          tls_starttls on
+          logfile ~/.msmtp.log
+          account default : ethereal
+          EOF
+          chmod 600 ~/.msmtprc
+
+      - name: Send Email using msmtp
+        run: |
+          echo -e "Subject: ${{ inputs.subject }}\n\n${{ inputs.text }}" | msmtp --debug --from=${{ secrets.ETHEREAL_EMAIL }} -t ${{ inputs.recipient }}
+
+      - name: Debug SMTP Log
+        if: failure()
+        run: cat ~/.msmtp.log

@@ -1,0 +1,45 @@
+name: Conventional Commits
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check_commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Conventional Commits
+        uses: webiny/action-conventional-commits@v1.3.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Optional, for private repositories.
+          # allowed-commit-types: "feat,fix" # Optional, set if you want a subset of commit types to be allowed.
+
+      - name: Fail if invalid commits are found
+        if: ${{ failure() }}
+        run: |
+          echo "Some commit messages do not follow Conventional Commit standards"
+          exit 1
+
+      - name: Comment and Close PR if check fails
+        if: ${{ failure() }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "⚠️ **PR closed**: Commit messages must follow [Conventional Commit](https://www.conventionalcommits.org/) format. Please update and reopen."
+          gh pr close ${{ github.event.pull_request.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify_failure:
+    needs: check_commits
+    if: failure()
+    uses: ./.github/workflows/send-email.yml
+    with:
+      recipient: "${{ github.event.pull_request.user.login }}@users.noreply.github.com"
+      subject: "PR Closed Due to Invalid Commit Messages"
+      text: "Hi ${{ github.event.pull_request.user.login }},\n\nYour PR was closed because commit messages did not follow Conventional Commit standards. Please update and reopen.\n\nBest,\nGitHub Actions Bot"
+    secrets:
+      ETHEREAL_EMAIL: ${{ secrets.ETHEREAL_EMAIL }}
+      ETHEREAL_PASSWORD: ${{ secrets.ETHEREAL_PASSWORD }}
