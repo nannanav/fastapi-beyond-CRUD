@@ -35,11 +35,7 @@ jobs:
 
       - name: Debug Running Containers
         run: |
-          docker ps -a
-          docker logs fastapi-beyond-crud-web-1
-          docker logs fastapi-beyond-crud-celery-1
           docker logs fastapi-beyond-crud-db-1
-          docker logs fastapi-beyond-crud-redis-1
 
       - name: Wait for Database to Be Ready
         run: |
