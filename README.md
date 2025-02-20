@@ -85,4 +85,4 @@ I welcome contributions to improve the documentation! You can contribute [here](
 3. Create a nightly build workflow. This triggers on main at night, and tests and builds. It stores the built image in github registry. Upon failure, it sends an email notification to the users. 
 
 ## To run:
-    docker compose up -d
+    docker compose --env-file .env.example up -d --build

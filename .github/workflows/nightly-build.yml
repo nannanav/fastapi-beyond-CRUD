@@ -46,18 +46,18 @@ jobs:
         id: find_container
         run: echo "CONTAINER_NAME=$(docker ps --filter 'name=web' --format '{{.Names}}')" >> $GITHUB_ENV
 
+      - name: Debug Running Containers
+        run: |
+          docker ps -a
+          docker logs fastapi-beyond-crud-web-1
+          docker logs fastapi-beyond-crud-celery-1
+
       - name: Wait for Database to Be Ready
         run: |
           until docker compose exec -T $(docker compose ps -q db) pg_isready -U myuser; do
             echo "Waiting for PostgreSQL to be ready..."
             sleep 3
           done
-
-      - name: Debug Running Containers
-        run: |
-          docker ps -a
-          docker logs fastapi-beyond-crud-web-1
-          docker logs fastapi-beyond-crud-celery-1
 
       - name: Run Database Migrations
         run: docker exec $CONTAINER_NAME alembic upgrade head
