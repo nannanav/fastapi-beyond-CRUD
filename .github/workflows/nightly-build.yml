@@ -37,12 +37,12 @@ jobs:
         run: |
           docker logs fastapi-beyond-crud-db-1
 
-      - name: Wait for Database to Be Ready
-        run: |
-          until docker compose exec -T $(docker compose ps -q db) pg_isready -U myuser; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 3
-          done
+      # - name: Wait for Database to Be Ready
+      #   run: |
+      #     until docker compose exec -T $(docker compose ps -q db) pg_isready -U myuser; do
+      #       echo "Waiting for PostgreSQL to be ready..."
+      #       sleep 3
+      #     done
 
       - name: Run Database Migrations
         run: docker exec $CONTAINER_NAME alembic upgrade head
