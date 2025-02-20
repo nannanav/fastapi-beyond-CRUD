@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libssl-dev \
     python3-dev \
+    cargo \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip to avoid old dependency resolution issues
