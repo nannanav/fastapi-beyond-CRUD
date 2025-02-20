@@ -2,17 +2,6 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for PostgreSQL
-# RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    libffi-dev \
-    libssl-dev \
-    python3-dev \
-    cargo \
-    && rm -rf /var/lib/apt/lists/*
-
 # Upgrade pip to avoid old dependency resolution issues
 RUN pip install --upgrade pip
 
