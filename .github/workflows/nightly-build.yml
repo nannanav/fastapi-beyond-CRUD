@@ -1,13 +1,13 @@
 name: Nightly Build
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-  # on:
-  #   schedule:
-  #     - cron: '00 22 * * *'  # Runs at UTC every day
+on:
+  schedule:
+    - cron: '00 00 * * *'  # Runs at UTC every day
 
 jobs:
   build-and-test:
